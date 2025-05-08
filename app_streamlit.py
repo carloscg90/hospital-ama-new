@@ -24,7 +24,6 @@ with tabs[0]:
     col1, col2, col3 = st.columns(3)
     estado_sel = col1.selectbox("Filtrar por estado", ["Todos"] + estados)
     doctor_sel = col2.selectbox("Filtrar por doctor", ["Todos"] + doctores)
-    fecha_sel = col3.date_input("Filtrar por fecha")
 
     # Construcción dinámica de consulta con filtros
     condiciones = []
@@ -32,8 +31,6 @@ with tabs[0]:
         condiciones.append(f"c.estado = '{estado_sel}'")
     if doctor_sel != "Todos":
         condiciones.append(f"d.nombre = '{doctor_sel}'")
-    if fecha_sel:
-        condiciones.append(f"DATE(c.fecha) = '{fecha_sel}'")
 
     filtro_sql = " AND ".join(condiciones)
     if filtro_sql:
@@ -51,7 +48,6 @@ with tabs[0]:
 
     # 2. Citas por día
     query_dia = f'''
-    SELECT DATE(c.fecha) as dia, COUNT(*) as cantidad
     FROM citas c
     JOIN doctores d ON c.doctor_id = d.id
     {filtro_sql}
