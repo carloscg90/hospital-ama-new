@@ -10,12 +10,12 @@ st.title("Dashboard Hospital AMA")
 # Conexión a la base de datos
 conn = sqlite3.connect("hospital_ama.db")
 
-# Crear pestañas
 tabs = st.tabs(["📅 Citas", "🩺 Doctores", "🧑 Pacientes", "🧾 Servicios"])
 
 # ---------------- TAB 1: Citas ----------------
 with tabs[0]:
     st.header("📅 Citas")
+    mostrar_datos = st.checkbox("Mostrar datos de apoyo (Citas)")
 
     try:
         df_estado = pd.read_sql_query("SELECT estado, COUNT(*) as cantidad FROM citas GROUP BY estado", conn)
@@ -24,8 +24,11 @@ with tabs[0]:
         df_hora = pd.read_sql_query("SELECT STRFTIME('%H', hora) as hora, COUNT(*) as cantidad FROM citas GROUP BY hora ORDER BY hora", conn)
         df_hora['hora'] = df_hora['hora'].astype(int)
 
-        fig, axs = plt.subplots(2, 2, figsize=(14, 10))
+        if mostrar_datos:
+            st.subheader("Datos de citas por estado")
+            st.dataframe(df_estado)
 
+        fig, axs = plt.subplots(2, 2, figsize=(14, 10))
         axs[0, 0].pie(df_estado['cantidad'], labels=df_estado['estado'], autopct='%1.1f%%')
         axs[0, 0].set_title("Distribución por Estado")
 
@@ -44,20 +47,24 @@ with tabs[0]:
 
         plt.tight_layout()
         st.pyplot(fig)
-
     except Exception as e:
-        st.error("Error cargando datos de la tabla 'citas' o sus relaciones.")
+        st.error("Error en gráficos de citas.")
         st.exception(e)
 
 # ---------------- TAB 2: Doctores ----------------
 with tabs[1]:
     st.header("🩺 Doctores")
+    mostrar_datos = st.checkbox("Mostrar datos de apoyo (Doctores)")
+
     try:
         df_citas_doc = pd.read_sql_query("SELECT d.nombre, COUNT(c.id) AS total_citas FROM doctores d LEFT JOIN citas c ON c.doctor_id = d.id GROUP BY d.nombre", conn)
         df_especialidad = pd.read_sql_query("SELECT especialidad, COUNT(*) as cantidad FROM doctores GROUP BY especialidad", conn)
 
-        fig, axs = plt.subplots(1, 2, figsize=(14, 5))
+        if mostrar_datos:
+            st.subheader("Datos de citas por doctor")
+            st.dataframe(df_citas_doc)
 
+        fig, axs = plt.subplots(1, 2, figsize=(14, 5))
         axs[0].bar(df_citas_doc['nombre'], df_citas_doc['total_citas'], color='orange')
         axs[0].set_title("Citas por Doctor")
         axs[0].tick_params(axis='x', rotation=45)
@@ -67,20 +74,24 @@ with tabs[1]:
 
         plt.tight_layout()
         st.pyplot(fig)
-
     except Exception as e:
-        st.error("Error cargando datos de doctores.")
+        st.error("Error en gráficos de doctores.")
         st.exception(e)
 
 # ---------------- TAB 3: Pacientes ----------------
 with tabs[2]:
     st.header("🧑 Pacientes")
+    mostrar_datos = st.checkbox("Mostrar datos de apoyo (Pacientes)")
+
     try:
         df_edad = pd.read_sql_query("SELECT STRFTIME('%Y', fecha_nacimiento) as anio, COUNT(*) as cantidad FROM pacientes GROUP BY anio ORDER BY anio", conn)
         df_citas_pac = pd.read_sql_query("SELECT p.nombre, COUNT(c.id) AS total_citas FROM pacientes p LEFT JOIN citas c ON c.paciente_id = p.id GROUP BY p.nombre ORDER BY total_citas DESC LIMIT 5", conn)
 
-        fig, axs = plt.subplots(1, 2, figsize=(14, 5))
+        if mostrar_datos:
+            st.subheader("Datos de distribución de pacientes")
+            st.dataframe(df_edad)
 
+        fig, axs = plt.subplots(1, 2, figsize=(14, 5))
         axs[0].plot(df_edad['anio'], df_edad['cantidad'], marker='o')
         axs[0].set_title("Distribución por Año de Nacimiento")
         axs[0].tick_params(axis='x', rotation=45)
@@ -91,20 +102,24 @@ with tabs[2]:
 
         plt.tight_layout()
         st.pyplot(fig)
-
     except Exception as e:
-        st.error("Error cargando datos de pacientes.")
+        st.error("Error en gráficos de pacientes.")
         st.exception(e)
 
 # ---------------- TAB 4: Servicios ----------------
 with tabs[3]:
     st.header("🧾 Servicios")
+    mostrar_datos = st.checkbox("Mostrar datos de apoyo (Servicios)")
+
     try:
         df_tipo = pd.read_sql_query("SELECT tipo, COUNT(*) as cantidad FROM servicios GROUP BY tipo", conn)
         df_costo = pd.read_sql_query("SELECT nombre, costo FROM servicios ORDER BY costo DESC LIMIT 10", conn)
 
-        fig, axs = plt.subplots(1, 2, figsize=(14, 5))
+        if mostrar_datos:
+            st.subheader("Datos de tipos de servicios")
+            st.dataframe(df_tipo)
 
+        fig, axs = plt.subplots(1, 2, figsize=(14, 5))
         axs[0].pie(df_tipo['cantidad'], labels=df_tipo['tipo'], autopct='%1.1f%%')
         axs[0].set_title("Tipos de Servicios")
 
@@ -114,7 +129,6 @@ with tabs[3]:
 
         plt.tight_layout()
         st.pyplot(fig)
-
     except Exception as e:
-        st.error("Error cargando datos de servicios.")
+        st.error("Error en gráficos de servicios.")
         st.exception(e)
